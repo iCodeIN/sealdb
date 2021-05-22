@@ -23,6 +23,15 @@ struct Bookstore {
 fn main() -> anyhow::Result<()> {
     let store = sample_data();
 
+    loop {
+        use PromptAction::*;
+        match prompt()? {
+            List => list_items(&store),
+
+            Quit => break,
+        }
+    }
+
     Ok(())
 }
 
@@ -55,6 +64,10 @@ fn prompt() -> anyhow::Result<PromptAction> {
             },
         });
     }
+}
+
+fn list_items(store: &Bookstore) {
+    todo!()
 }
 
 fn sample_data() -> Bookstore {
