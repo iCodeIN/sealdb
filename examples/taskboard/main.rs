@@ -12,12 +12,12 @@ enum PromptAction {
 }
 
 #[derive(Default)]
-struct Bookstore {
-    authors: Table<models::Author>,
-    book_authors: Table<models::BookAuthor>,
-    books: Table<models::Book>,
-    listing_reviews: Table<models::ListingReview>,
-    listings: Table<models::Listing>,
+struct TaskBoard {
+    pub boards: Table<models::Board>,
+    pub labels: Table<models::Label>,
+    pub lists: Table<models::List>,
+    pub task_labels: Table<models::TaskLabel>,
+    pub tasks: Table<models::Task>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -67,12 +67,12 @@ fn prompt() -> anyhow::Result<PromptAction> {
     }
 }
 
-fn list_items(store: &Bookstore) {
+fn list_items(store: &TaskBoard) {
     todo!()
 }
 
-fn sample_data() -> Bookstore {
-    let store = Bookstore::default();
+fn sample_data() -> TaskBoard {
+    let store = TaskBoard::default();
 
     store
 }
