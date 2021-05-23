@@ -12,4 +12,23 @@ pub struct TaskLabel {
     pub label: LabelId,
 }
 
-impl Record for TaskLabel {}
+#[derive(Debug, Clone, PartialEq)]
+pub struct InsertTaskLabel {
+    pub task: TaskId,
+    pub label: LabelId,
+}
+
+impl Record for TaskLabel {
+    type PrimaryKey = TaskLabelId;
+    type Insert = InsertTaskLabel;
+
+    fn create_primary_key(key: usize) -> Self::PrimaryKey {
+        TaskLabelId(key)
+    }
+
+    fn from_insert(record: Self::Insert, primary_key: Self::PrimaryKey) -> Self {
+        let InsertTaskLabel {task, label} = record;
+
+        Self {id: primary_key, task, label}
+    }
+}

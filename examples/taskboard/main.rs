@@ -1,4 +1,4 @@
-mod models;
+pub mod models;
 
 use std::io::{self, BufRead, Write};
 

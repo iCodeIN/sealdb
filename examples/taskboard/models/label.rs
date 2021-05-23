@@ -23,4 +23,23 @@ pub struct Label {
     pub color: Option<Color>,
 }
 
-impl Record for Label {}
+#[derive(Debug, Clone, PartialEq)]
+pub struct InsertLabel {
+    pub name: FixedLenStr<256>,
+    pub color: Option<Color>,
+}
+
+impl Record for Label {
+    type PrimaryKey = LabelId;
+    type Insert = InsertLabel;
+
+    fn create_primary_key(key: usize) -> Self::PrimaryKey {
+        LabelId(key)
+    }
+
+    fn from_insert(record: Self::Insert, primary_key: Self::PrimaryKey) -> Self {
+        let InsertLabel {name, color} = record;
+
+        Self {id: primary_key, name, color}
+    }
+}
