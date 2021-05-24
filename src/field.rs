@@ -1,3 +1,7 @@
+mod expr;
+
+pub use expr::*;
+
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -61,6 +65,12 @@ impl<T, const FIELD_NAME: usize> PartialEq for Field<T, FIELD_NAME>
 
 impl<T, const FIELD_NAME: usize> Eq for Field<T, FIELD_NAME>
     where T: FieldAccess<FIELD_NAME> {}
+
+impl<T, const FIELD_NAME: usize> Expr for Field<T, FIELD_NAME>
+    where T: FieldAccess<FIELD_NAME>
+{
+    type Type = <T as FieldAccess<FIELD_NAME>>::FieldType;
+}
 
 impl<T, const FIELD_NAME: usize> Field<T, FIELD_NAME>
     where T: FieldAccess<FIELD_NAME>,
