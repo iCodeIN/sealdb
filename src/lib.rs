@@ -1,3 +1,7 @@
+mod field;
+
+pub use field::*;
+
 pub mod types;
 
 pub trait Record: Sized {
