@@ -1,12 +1,12 @@
 use std::marker::PhantomData;
 
 pub trait Expr<Ctx>: Sized {
-    type Type;
+    type Output;
 
-    fn eval(self, ctx: &Ctx) -> Self::Type;
+    fn eval(self, ctx: &Ctx) -> Self::Output;
 }
 
-pub trait BoolExpr<Ctx>: Expr<Ctx, Type=bool> {
+pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
     fn eq<E: BoolExpr<Ctx>>(self, other: E) -> Equals<bool, Ctx, Self, E> {
         Equals {
             left: self,
@@ -43,19 +43,19 @@ pub trait BoolExpr<Ctx>: Expr<Ctx, Type=bool> {
     }
 }
 
-impl<Ctx, E: Expr<Ctx, Type=bool>> BoolExpr<Ctx> for E {}
+impl<Ctx, E: Expr<Ctx, Output=bool>> BoolExpr<Ctx> for E {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Equals<T: PartialEq, Ctx, L: Expr<Ctx, Type=T>, R: Expr<Ctx, Type=T>> {
+pub struct Equals<T: PartialEq, Ctx, L: Expr<Ctx, Output=T>, R: Expr<Ctx, Output=T>> {
     pub left: L,
     pub right: R,
     _marker: PhantomData<(T, Ctx)>,
 }
 
-impl<T: PartialEq, Ctx, L: Expr<Ctx, Type=T>, R: Expr<Ctx, Type=T>> Expr<Ctx> for Equals<T, Ctx, L, R> {
-    type Type = bool;
+impl<T: PartialEq, Ctx, L: Expr<Ctx, Output=T>, R: Expr<Ctx, Output=T>> Expr<Ctx> for Equals<T, Ctx, L, R> {
+    type Output = bool;
 
-    fn eval(self, ctx: &Ctx) -> Self::Type {
+    fn eval(self, ctx: &Ctx) -> Self::Output {
         self.left.eval(ctx) == self.right.eval(ctx)
     }
 }
@@ -68,9 +68,9 @@ pub struct And<Ctx, L: BoolExpr<Ctx>, R: BoolExpr<Ctx>> {
 }
 
 impl<Ctx, L: BoolExpr<Ctx>, R: BoolExpr<Ctx>> Expr<Ctx> for And<Ctx, L, R> {
-    type Type = bool;
+    type Output = bool;
 
-    fn eval(self, ctx: &Ctx) -> Self::Type {
+    fn eval(self, ctx: &Ctx) -> Self::Output {
         self.left.eval(ctx) && self.right.eval(ctx)
     }
 }
@@ -83,9 +83,9 @@ pub struct Or<Ctx, L: BoolExpr<Ctx>, R: BoolExpr<Ctx>> {
 }
 
 impl<Ctx, L: BoolExpr<Ctx>, R: BoolExpr<Ctx>> Expr<Ctx> for Or<Ctx, L, R> {
-    type Type = bool;
+    type Output = bool;
 
-    fn eval(self, ctx: &Ctx) -> Self::Type {
+    fn eval(self, ctx: &Ctx) -> Self::Output {
         self.left.eval(ctx) || self.right.eval(ctx)
     }
 }
@@ -97,9 +97,9 @@ pub struct Not<Ctx, T: BoolExpr<Ctx>> {
 }
 
 impl<Ctx, T: BoolExpr<Ctx>> Expr<Ctx> for Not<Ctx, T> {
-    type Type = bool;
+    type Output = bool;
 
-    fn eval(self, ctx: &Ctx) -> Self::Type {
+    fn eval(self, ctx: &Ctx) -> Self::Output {
         !self.value.eval(ctx)
     }
 }

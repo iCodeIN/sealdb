@@ -68,9 +68,9 @@ impl<T, const FIELD_NAME: usize> Expr<T> for Field<T, FIELD_NAME>
     where T: FieldAccess<FIELD_NAME>,
           <T as FieldAccess<FIELD_NAME>>::FieldType: Copy
 {
-    type Type = <T as FieldAccess<FIELD_NAME>>::FieldType;
+    type Output = <T as FieldAccess<FIELD_NAME>>::FieldType;
 
-    fn eval(self, ctx: &T) -> Self::Type {
+    fn eval(self, ctx: &T) -> Self::Output {
         *self.get(ctx)
     }
 }
