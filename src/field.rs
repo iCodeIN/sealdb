@@ -64,10 +64,15 @@ impl<T, const FIELD_NAME: usize> PartialEq for Field<T, FIELD_NAME>
 impl<T, const FIELD_NAME: usize> Eq for Field<T, FIELD_NAME>
     where T: FieldAccess<FIELD_NAME> {}
 
-impl<T, const FIELD_NAME: usize> Expr for Field<T, FIELD_NAME>
-    where T: FieldAccess<FIELD_NAME>
+impl<T, const FIELD_NAME: usize> Expr<T> for Field<T, FIELD_NAME>
+    where T: FieldAccess<FIELD_NAME>,
+          <T as FieldAccess<FIELD_NAME>>::FieldType: Copy
 {
     type Type = <T as FieldAccess<FIELD_NAME>>::FieldType;
+
+    fn eval(self, ctx: &T) -> Self::Type {
+        *self.get(ctx)
+    }
 }
 
 impl<T, const FIELD_NAME: usize> Field<T, FIELD_NAME>
