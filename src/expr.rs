@@ -1,24 +1,26 @@
+mod ctx_arg;
+
+pub use ctx_arg::*;
+
 use std::marker::PhantomData;
 
 pub trait Expr<Ctx>: Sized {
     type Output;
 
     fn eval(self, ctx: &Ctx) -> Self::Output;
-}
 
-pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
-    fn eq<E: BoolExpr<Ctx>>(self, other: E) -> Equals<bool, Ctx, Self, E> {
+    fn equ<E: Expr<Ctx, Output=Self::Output>>(self, other: E) -> Equals<Self::Output, Ctx, Self, E>
+        where Self::Output: PartialEq,
+    {
         Equals {
             left: self,
             right: other,
             _marker: PhantomData,
         }
     }
+}
 
-    fn neq<E: BoolExpr<Ctx>>(self, other: E) -> Not<Ctx, Equals<bool, Ctx, Self, E>> {
-        self.eq(other).not()
-    }
-
+pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
     fn and<E: BoolExpr<Ctx>>(self, other: E) -> And<Ctx, Self, E> {
         And {
             left: self,
@@ -101,5 +103,65 @@ impl<Ctx, T: BoolExpr<Ctx>> Expr<Ctx> for Not<Ctx, T> {
 
     fn eval(self, ctx: &Ctx) -> Self::Output {
         !self.value.eval(ctx)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::{Field, FieldAccess};
+
+    #[derive(Debug)]
+    struct Test {
+        age: usize,
+        category: &'static str,
+    }
+
+    impl FieldAccess<0> for Test {
+        type FieldType = usize;
+
+        fn get(&self) -> &Self::FieldType {
+            &self.age
+        }
+
+        fn get_mut(&mut self) -> &mut Self::FieldType {
+            &mut self.age
+        }
+    }
+
+    impl FieldAccess<1> for Test {
+        type FieldType = &'static str;
+
+        fn get(&self) -> &Self::FieldType {
+            &self.category
+        }
+
+        fn get_mut(&mut self) -> &mut Self::FieldType {
+            &mut self.category
+        }
+    }
+
+    #[derive(Debug, Default)]
+    struct TestFields<const ARG_INDEX: usize> {
+        age: Field<Test, 0, ARG_INDEX>,
+        category: Field<Test, 1, ARG_INDEX>,
+    }
+
+    #[test]
+    fn test_field_access() {
+        let value1 = Test {age: 25, category: "animals"};
+        let value2 = Test {age: 25, category: "furniture"};
+
+        // The index in the fields corresponds to the position in the tuple passed to eval
+        let fields1 = TestFields::<0>::default();
+        let fields2 = TestFields::<1>::default();
+
+        let expr1 = fields1.age.equ(fields2.age);
+        let expr2 = fields1.category.equ(fields2.category);
+
+        let ctx = (&value1, &value2);
+        assert!(expr1.eval(&ctx));
+        assert!(!expr2.eval(&ctx));
     }
 }

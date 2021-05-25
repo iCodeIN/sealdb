@@ -1,7 +1,7 @@
 use std::fmt;
 use std::marker::PhantomData;
 
-use crate::Expr;
+use crate::{Expr, CtxArg};
 
 pub trait FieldAccess<const FIELD_NAME: usize> {
     type FieldType;
@@ -17,13 +17,13 @@ pub trait FieldAccess<const FIELD_NAME: usize> {
 }
 
 //TODO: `FIELD_NAME` should be `&str` once that is supported by const generics
-pub struct Field<T, const FIELD_NAME: usize>
+pub struct Field<T, const FIELD_NAME: usize, const ARG_INDEX: usize>
     where T: FieldAccess<FIELD_NAME>,
 {
     _marker: PhantomData<T>,
 }
 
-impl<T, const FIELD_NAME: usize> Default for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> Default for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME>,
 {
     fn default() -> Self {
@@ -33,7 +33,7 @@ impl<T, const FIELD_NAME: usize> Default for Field<T, FIELD_NAME>
     }
 }
 
-impl<T, const FIELD_NAME: usize> fmt::Debug for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> fmt::Debug for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -41,7 +41,7 @@ impl<T, const FIELD_NAME: usize> fmt::Debug for Field<T, FIELD_NAME>
     }
 }
 
-impl<T, const FIELD_NAME: usize> Clone for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> Clone for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME>
 {
     fn clone(&self) -> Self {
@@ -49,10 +49,10 @@ impl<T, const FIELD_NAME: usize> Clone for Field<T, FIELD_NAME>
     }
 }
 
-impl<T, const FIELD_NAME: usize> Copy for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> Copy for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME> {}
 
-impl<T, const FIELD_NAME: usize> PartialEq for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> PartialEq for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME>,
 {
     fn eq(&self, _other: &Self) -> bool {
@@ -61,21 +61,22 @@ impl<T, const FIELD_NAME: usize> PartialEq for Field<T, FIELD_NAME>
     }
 }
 
-impl<T, const FIELD_NAME: usize> Eq for Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> Eq for Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME> {}
 
-impl<T, const FIELD_NAME: usize> Expr<T> for Field<T, FIELD_NAME>
-    where T: FieldAccess<FIELD_NAME>,
-          <T as FieldAccess<FIELD_NAME>>::FieldType: Copy
+impl<'a, T, Ctx, const FIELD_NAME: usize, const ARG_INDEX: usize> Expr<Ctx> for Field<T, FIELD_NAME, ARG_INDEX>
+    where T: FieldAccess<FIELD_NAME> + 'static,
+          Ctx: CtxArg<ARG_INDEX, Output=&'a T>,
+          <T as FieldAccess<FIELD_NAME>>::FieldType: Copy,
 {
     type Output = <T as FieldAccess<FIELD_NAME>>::FieldType;
 
-    fn eval(self, ctx: &T) -> Self::Output {
-        *self.get(ctx)
+    fn eval(self, ctx: &Ctx) -> Self::Output {
+        *self.get(ctx.get())
     }
 }
 
-impl<T, const FIELD_NAME: usize> Field<T, FIELD_NAME>
+impl<T, const FIELD_NAME: usize, const ARG_INDEX: usize> Field<T, FIELD_NAME, ARG_INDEX>
     where T: FieldAccess<FIELD_NAME>,
 {
     pub fn get(self, value: &T) -> &<T as FieldAccess<FIELD_NAME>>::FieldType {
@@ -139,17 +140,17 @@ mod tests {
     }
 
     #[derive(Debug, Default)]
-    struct TestFields {
-        age: Field<Test, 0>,
-        category: Field<Test, 1>,
-        items: Field<Test, 2>,
+    struct TestFields<const ARG_INDEX: usize> {
+        age: Field<Test, 0, ARG_INDEX>,
+        category: Field<Test, 1, ARG_INDEX>,
+        items: Field<Test, 2, ARG_INDEX>,
     }
 
     #[test]
     fn test_field_access() {
         let mut value = Test {age: 25, category: "animals", items: Vec::new()};
 
-        let fields = TestFields::default();
+        let fields = TestFields::<0>::default();
 
         assert_eq!(*fields.age.get(&value), 25);
         assert_eq!(*fields.category.get(&value), "animals");
