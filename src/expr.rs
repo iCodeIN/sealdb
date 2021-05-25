@@ -20,6 +20,22 @@ pub trait Expr<Ctx>: Sized {
     }
 }
 
+macro_rules! impl_expr_copy {
+    ($($typ:ty),* $(,)?) => {
+        $(
+            impl<Ctx> Expr<Ctx> for $typ {
+                type Output = Self;
+
+                fn eval(self, _ctx: &Ctx) -> Self::Output {
+                    self
+                }
+            }
+        )*
+    };
+}
+
+impl_expr_copy!(bool, &str, (), u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64);
+
 pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
     fn and<E: BoolExpr<Ctx>>(self, other: E) -> And<Ctx, Self, E> {
         And {
@@ -159,9 +175,11 @@ mod tests {
 
         let expr1 = fields1.age.equ(fields2.age);
         let expr2 = fields1.category.equ(fields2.category);
+        let expr3 = fields1.age.equ(25usize);
 
         let ctx = (&value1, &value2);
         assert!(expr1.eval(&ctx));
         assert!(!expr2.eval(&ctx));
+        assert!(expr3.eval(&ctx));
     }
 }
