@@ -2,7 +2,7 @@ pub trait Expr: Sized {
     type Type;
 }
 
-pub trait BoolExpr: Sized {
+pub trait BoolExpr: Expr<Type=bool> {
     fn eq<E: BoolExpr>(self, other: E) -> Equals<Self, E> {
         Equals {
             left: self,

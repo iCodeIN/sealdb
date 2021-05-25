@@ -1,9 +1,7 @@
-mod expr;
-
-pub use expr::*;
-
 use std::fmt;
 use std::marker::PhantomData;
+
+use crate::Expr;
 
 pub trait FieldAccess<const FIELD_NAME: usize> {
     type FieldType;

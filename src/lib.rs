@@ -1,6 +1,8 @@
 mod field;
+mod expr;
 
 pub use field::*;
+pub use expr::*;
 
 pub mod types;
 
