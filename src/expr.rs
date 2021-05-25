@@ -2,6 +2,7 @@ mod ctx_arg;
 
 pub use ctx_arg::*;
 
+use std::fmt;
 use std::marker::PhantomData;
 
 pub trait Expr<Ctx>: Sized {
@@ -63,11 +64,49 @@ pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
 
 impl<Ctx, E: Expr<Ctx, Output=bool>> BoolExpr<Ctx> for E {}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+// /// Implements the common traits like Clone, Copy, PartialEq, Eq while excluding type parameters
+// /// that don't need to implement those traits
+// macro_rules! impl_expr_type_traits {
+//     (
+//         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+//         #[type_params($($type_param_name:ident),* $(,)?)]
+//         #[derive_type_params($($derive_param:ident),* $(,)?)]
+//         $tyvis:vis struct $tyname:ident<{$($typaram:tt)*}> {
+//             $(
+//                 $fieldvis:vis $field:ident : $ty:ty
+//             ),*
+//             $(,)?
+//         }
+//     ) => {
+//         $tyvis struct $tyname<$($typaram)*> {
+//             $($fieldvis $field : $ty),*
+//         }
+
+//         impl<$($typaram)*> std::fmt::Debug for $tyname<$($type_param_name),*>
+
+//         {
+
+//         }
+//     };
+// }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+// #[type_params(T, Ctx, L, R)]
+// #[derive_type_params(L, R)]
 pub struct Equals<T: PartialEq, Ctx, L: Expr<Ctx, Output=T>, R: Expr<Ctx, Output=T>> {
     pub left: L,
     pub right: R,
     _marker: PhantomData<(T, Ctx)>,
+}
+
+impl<T: PartialEq, Ctx, L: Expr<Ctx, Output=T> + fmt::Debug, R: Expr<Ctx, Output=T> + fmt::Debug> fmt::Debug for Equals<T, Ctx, L, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Equals")
+            .field("left", &self.left)
+            .field("right", &self.right)
+            .field("_marker", &self._marker)
+            .finish()
+    }
 }
 
 impl<T: PartialEq, Ctx, L: Expr<Ctx, Output=T>, R: Expr<Ctx, Output=T>> Expr<Ctx> for Equals<T, Ctx, L, R> {

@@ -68,6 +68,8 @@ fn prompt() -> anyhow::Result<PromptAction> {
 }
 
 fn list_items(store: &TaskBoard) {
+    let completed_tasks: Vec<_> = store.tasks.filter(|task: &models::TaskFields<0>| task.completed).collect();
+
     todo!()
 }
 

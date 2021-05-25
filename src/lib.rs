@@ -33,6 +33,13 @@ impl<R: Record> Table<R> {
         TableIter {records: &self.records}
     }
 
+    pub fn filter<P>(&self, predicate: P) -> Filter<R, P> {
+        Filter {
+            records: &self.records,
+            predicate,
+        }
+    }
+
     pub fn insert(&mut self, record: R::Insert) {
         let next_key = self.generate_next_primary_key();
         let primary_key = R::create_primary_key(next_key);
@@ -66,3 +73,30 @@ impl<'a, R: Record> Iterator for TableIter<'a, R> {
 }
 
 impl<'a, R: Record> ExactSizeIterator for TableIter<'a, R> {}
+
+pub struct Filter<'a, R: Record, P> {
+    records: &'a [R],
+    predicate: P,
+}
+
+impl<'a, R: Record, P> Iterator for Filter<'a, R, P>
+    where P: Expr<(&'a R,), Output=bool> + Copy,
+{
+    type Item = &'a R;
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.records.iter().size_hint()
+    }
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let item = self.records.get(0)?;
+            self.records = &self.records[1..];
+
+            let ctx = (item,);
+            if self.predicate.eval(&ctx) {
+                break Some(item);
+            }
+        }
+    }
+}

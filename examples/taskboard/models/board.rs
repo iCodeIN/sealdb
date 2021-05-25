@@ -18,6 +18,7 @@ pub struct InsertBoard {
 
 impl Record for Board {
     type PrimaryKey = BoardId;
+    type Fields = (); //TODO
     type Insert = InsertBoard;
 
     fn create_primary_key(key: usize) -> Self::PrimaryKey {

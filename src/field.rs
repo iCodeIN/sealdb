@@ -98,9 +98,9 @@ mod tests {
 
     #[derive(Debug)]
     struct Test {
-        age: usize,
-        category: &'static str,
-        items: Vec<i32>,
+        pub age: usize,
+        pub category: &'static str,
+        pub items: Vec<i32>,
     }
 
     impl FieldAccess<0> for Test {
@@ -141,9 +141,9 @@ mod tests {
 
     #[derive(Debug, Default)]
     struct TestFields<const ARG_INDEX: usize> {
-        age: Field<Test, 0, ARG_INDEX>,
-        category: Field<Test, 1, ARG_INDEX>,
-        items: Field<Test, 2, ARG_INDEX>,
+        pub age: Field<Test, 0, ARG_INDEX>,
+        pub category: Field<Test, 1, ARG_INDEX>,
+        pub items: Field<Test, 2, ARG_INDEX>,
     }
 
     #[test]
