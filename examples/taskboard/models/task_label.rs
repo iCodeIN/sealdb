@@ -20,7 +20,7 @@ pub struct InsertTaskLabel {
 
 impl Record for TaskLabel {
     type PrimaryKey = TaskLabelId;
-    type Fields = (); //TODO
+    type Fields<const ARG_INDEX: usize> = (); //TODO
     type Insert = InsertTaskLabel;
 
     fn create_primary_key(key: usize) -> Self::PrimaryKey {

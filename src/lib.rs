@@ -1,3 +1,6 @@
+#![feature(generic_associated_types)]
+#![allow(incomplete_features)]
+
 mod field;
 mod expr;
 
@@ -8,6 +11,7 @@ pub mod types;
 
 pub trait Record: Sized {
     type PrimaryKey;
+    type Fields<const ARG_INDEX: usize>: Default;
     type Insert;
 
     fn create_primary_key(key: usize) -> Self::PrimaryKey;
@@ -33,10 +37,13 @@ impl<R: Record> Table<R> {
         TableIter {records: &self.records}
     }
 
-    pub fn filter<P>(&self, predicate: P) -> Filter<R, P> {
+    pub fn filter<'a, P, F>(&'a self, predicate: F) -> Filter<R, P>
+        where F: FnOnce(&<R as Record>::Fields<0>) -> P,
+              P: Expr<(&'a R,), Output=bool> + Copy,
+    {
         Filter {
             records: &self.records,
-            predicate,
+            predicate: predicate(&R::Fields::default()),
         }
     }
 

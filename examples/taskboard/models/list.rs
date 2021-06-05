@@ -16,7 +16,7 @@ pub struct InsertList {
 
 impl Record for List {
     type PrimaryKey = ListId;
-    type Fields = (); //TODO
+    type Fields<const ARG_INDEX: usize> = (); //TODO
     type Insert = InsertList;
 
     fn create_primary_key(key: usize) -> Self::PrimaryKey {

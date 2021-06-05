@@ -31,6 +31,7 @@ pub struct InsertLabel {
 
 impl Record for Label {
     type PrimaryKey = LabelId;
+    type Fields<const ARG_INDEX: usize> = (); //TODO
     type Insert = InsertLabel;
 
     fn create_primary_key(key: usize) -> Self::PrimaryKey {
