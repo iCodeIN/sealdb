@@ -10,7 +10,9 @@ pub struct Task {
     pub title: FixedLenStr<256>,
     pub description: FixedLenStr<4096>,
     pub completed: bool,
+    pub votes: usize,
     pub created: Date<Utc>,
+    pub due_date: Option<Date<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -32,9 +34,11 @@ impl Record for Task {
         let InsertTask {title, description} = record;
 
         let completed = false;
+        let votes = 0;
         let created = Utc::now().date();
+        let due_date = None;
 
-        Self {id: primary_key, title, description, completed, created}
+        Self {id: primary_key, title, description, completed, votes, created, due_date}
     }
 }
 
@@ -51,8 +55,22 @@ impl sealdb::FieldAccess<3> for Task {
     }
 }
 
+impl sealdb::FieldAccess<4> for Task {
+    type FieldType = usize;
+
+    fn get(&self) -> &Self::FieldType {
+        &self.votes
+    }
+
+    fn get_mut(&mut self) -> &mut Self::FieldType {
+        &mut self.votes
+    }
+}
+
+//TODO: autogenerate this
 #[derive(Debug, Default)]
 pub struct TaskFields<const ARG_INDEX: usize> {
     //TODO: other fields
     pub completed: sealdb::Field<Task, 3, ARG_INDEX>,
+    pub votes: sealdb::Field<Task, 4, ARG_INDEX>,
 }

@@ -5,8 +5,7 @@ pub mod models;
 
 use std::io::{self, BufRead, Write};
 
-use chrono::Date;
-use sealdb::Table;
+use sealdb::{Table, Expr, NumericExpr, BoolExpr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum PromptAction {
@@ -15,7 +14,7 @@ enum PromptAction {
 }
 
 #[derive(Default)]
-struct TaskBoard {
+pub struct TaskBoard {
     pub boards: Table<models::Board>,
     pub labels: Table<models::Label>,
     pub lists: Table<models::List>,
@@ -73,6 +72,8 @@ fn prompt() -> anyhow::Result<PromptAction> {
 fn list_items(store: &TaskBoard) {
     let completed_tasks: Vec<_> = store.tasks.filter(|task: &models::TaskFields<0>| task.completed).collect();
     dbg!(completed_tasks);
+    let any_votes: Vec<_> = store.tasks.filter(|task: &models::TaskFields<0>| task.votes.max(0usize).equ(0usize).not()).collect();
+    dbg!(any_votes);
 
     todo!()
 }

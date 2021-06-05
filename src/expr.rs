@@ -1,6 +1,8 @@
 mod ctx_arg;
+mod numeric;
 
 pub use ctx_arg::*;
+pub use numeric::*;
 
 use std::fmt;
 use std::marker::PhantomData;
@@ -36,6 +38,13 @@ macro_rules! impl_expr_copy {
 }
 
 impl_expr_copy!(bool, &str, (), u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64);
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct MethodCall<Ctx, Receiver, Args, const METHOD: usize> {
+    pub receiver: Receiver,
+    pub args: Args,
+    _marker: PhantomData<Ctx>,
+}
 
 pub trait BoolExpr<Ctx>: Expr<Ctx, Output=bool> {
     fn and<E: BoolExpr<Ctx>>(self, other: E) -> And<Ctx, Self, E> {
